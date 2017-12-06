@@ -3,7 +3,9 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"log"
 	"os"
+	"runtime"
 	"strconv"
 	"strings"
 )
@@ -17,12 +19,12 @@ type meminfo struct {
 
 func isError(e error) {
 	if e != nil {
-		panic(e)
+		log.Fatal(e)
 	}
 }
 
 func findLine(v string) string {
-	file, err := os.Open("meminfo.txt")
+	file, err := os.Open("/proc/meminfo")
 	isError(err)
 
 	line := 1
@@ -34,7 +36,8 @@ func findLine(v string) string {
 		}
 		line++
 	}
-	panic("error parsing /proc/meminfo for $v")
+	log.Fatal("error parsing /proc/meminfo")
+	return ("") // will never reach this empty
 }
 
 func humanReadable(i int) float32 {
@@ -134,6 +137,11 @@ func ratio(total string, free string) int {
 	return 0
 }
 func main() {
+	// Sanity check that this tool is being run on the proper system
+	if runtime.GOOS == "windows" {
+		log.Fatal("This tool is intended for unix systems only")
+	}
+
 	// Total Memory
 	t := strings.Fields(findLine("MemTotal"))
 	bValue, _ := strconv.Atoi(t[1])
